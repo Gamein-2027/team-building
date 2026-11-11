@@ -2,26 +2,27 @@ package gamein2.team.kernel.util;
 
 import gamein2.team.kernel.exceptions.InvalidTokenException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.Function;
 
-
 public class JwtUtils {
-    private static final String secret = "some-very-very-ultra-top-secret";
+    private static final String SECRET_STRING = "gamein2026-very-very-ultra-top-secret-signing-key-for-jwt-tokens-must-be-at-least-64-bytes-long-secure!";
+    private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_STRING.getBytes(StandardCharsets.UTF_8));
 
     public static String generateToken(Long userId) {
+        long now = System.currentTimeMillis();
         return Jwts.builder()
-                .setSubject(userId.toString())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + 86400000))
-                .signWith(
-                        SignatureAlgorithm.HS512,
-                        secret
-                ).compact();
+                .subject(userId.toString())
+                .issuedAt(new Date(now))
+                .expiration(new Date(now + 86400000))
+                .signWith(SECRET_KEY, Jwts.SIG.HS512)
+                .compact();
     }
 
     public static Boolean isTokenExpired(String token) throws InvalidTokenException {
@@ -40,9 +41,12 @@ public class JwtUtils {
 
     private static Claims getAllClaimsFromToken(String token) throws InvalidTokenException {
         try {
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
-
-        } catch (MalformedJwtException e) {
+            return Jwts.parser()
+                    .verifyWith(SECRET_KEY)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (JwtException | IllegalArgumentException e) {
             throw new InvalidTokenException("Invalid token!");
         }
     }

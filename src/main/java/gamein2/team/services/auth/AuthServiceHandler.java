@@ -11,17 +11,11 @@ import gamein2.team.kernel.iao.AuthInfo;
 import gamein2.team.kernel.repos.UserRepository;
 import gamein2.team.kernel.util.JwtUtils;
 import gamein2.team.kernel.util.RestUtil;
-import it.ozimov.springboot.mail.model.Email;
-import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
-import it.ozimov.springboot.mail.service.EmailService;
 import org.apache.commons.validator.routines.EmailValidator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import java.util.Optional;
 
 
@@ -29,9 +23,7 @@ import java.util.Optional;
 public class AuthServiceHandler implements AuthService {
 
     private final UserRepository userRepository;
-    @Autowired
-    public EmailService emailService;
-    @Value("${spring.mail.username}")
+    @Value("${spring.mail.username:}")
     private String sender;
 
     @Value("${kavehnegar.base.url}")
